@@ -1,4 +1,5 @@
 using lab4.Data;
+using lab4.Dto;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -38,8 +39,16 @@ public class BooksController : ControllerBase
     [HttpPost]
     [Route("add")]
     [ProducesResponseType(StatusCodes.Status201Created)]
-    public async Task<ActionResult<Book>> Add(Book book)
+    public async Task<ActionResult<Book>> Add(CreateBookDto dto)
     {
+        var book = new Book()
+        {
+            Quantity = dto.Quantity,
+            Article = dto.Article,
+            Author = dto.Author,
+            Title = dto.Title,
+            YearOfPublication = dto.YearOfPublication
+        };
         await _context.Books.AddAsync(book);
         await _context.SaveChangesAsync();
         return Ok(book);

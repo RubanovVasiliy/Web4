@@ -1,4 +1,5 @@
 using lab4.Data;
+using lab4.Dto;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -9,7 +10,7 @@ namespace lab4.Controllers;
 public class ReadersController : ControllerBase
 {
     private readonly MyDbContext _context;
-    
+
     public ReadersController(MyDbContext context)
     {
         _context = context;
@@ -27,19 +28,24 @@ public class ReadersController : ControllerBase
     [Route("getById/{id:int}")]
     public async Task<ActionResult<Reader>> GetById(int id)
     {
-        var reader = await _context.Readers.FindAsync(id);
-        if (reader == null)
-        {
-            return NotFound();
-        }
+        var reader = await _context.Readers
+            .Where(r=>r.Id==id)
+            .Include(r=>r.Books)
+            .ToListAsync();
+
         return Ok(reader);
     }
 
     [HttpPost]
     [Route("add")]
     [ProducesResponseType(StatusCodes.Status201Created)]
-    public async Task<ActionResult<Reader>> Add(Reader reader)
+    public async Task<ActionResult<Reader>> Add(CreateReaderDto dto)
     {
+        var reader = new Reader()
+        {
+            Fullname = dto.Fullname,
+            Birthday = dto.Birthday
+        };
         await _context.Readers.AddAsync(reader);
         await _context.SaveChangesAsync();
         return Ok(reader);
@@ -79,4 +85,26 @@ public class ReadersController : ControllerBase
 
         return Ok(reader);
     }
+
+    [HttpPost]
+    [Route("getBook")]
+    public async Task<ActionResult<Reader>> GetBook(CreateReaderBookDto dto)
+    {
+        var reader = await _context.Readers
+            .Where(r=>r.Id ==dto.ReaderId)
+            .Include(r=>r.Books)
+            .FirstOrDefaultAsync();
+        if (reader == null) return NotFound("Reader not found");
+
+        var book = await _context.Books.FindAsync(dto.BookId);
+        if (book == null) return NotFound("Book not found");
+        if (book.Quantity < 1) return NotFound("The books are over!");
+        
+        reader.Books.Add(book);
+        book.Quantity--;
+        
+        await _context.SaveChangesAsync();
+        return Ok(reader);
+    }
+    
 }
