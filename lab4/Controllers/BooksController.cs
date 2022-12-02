@@ -21,7 +21,7 @@ public class BooksController : ControllerBase
     public async Task<ActionResult<List<Book>>> GetAll()
     {
         var books = await _context.Books.ToListAsync();
-        return books;
+        return Ok(books);
     }
 
     [HttpGet]
@@ -90,4 +90,14 @@ public class BooksController : ControllerBase
 
         return Ok(book);
     }
+    
+    [HttpGet]
+    [Route("getBooksInStock")]
+    public async Task<ActionResult<List<Book>>> GetBooksInStock()
+    {
+        var books = await _context.Books.Where(b=>b.Quantity > 0).ToListAsync();
+        return Ok(books);
+    }
+    
+    
 }
