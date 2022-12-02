@@ -29,8 +29,8 @@ public class ReadersController : ControllerBase
     public async Task<ActionResult<Reader>> GetById(int id)
     {
         var reader = await _context.Readers
-            .Where(r=>r.Id==id)
-            .Include(r=>r.Books)
+            .Where(r => r.Id == id)
+            .Include(r => r.Books)
             .ToListAsync();
 
         return Ok(reader);
@@ -91,20 +91,29 @@ public class ReadersController : ControllerBase
     public async Task<ActionResult<Reader>> GetBook(CreateReaderBookDto dto)
     {
         var reader = await _context.Readers
-            .Where(r=>r.Id ==dto.ReaderId)
-            .Include(r=>r.Books)
+            .Where(r => r.Id == dto.ReaderId)
+            .Include(r => r.Books)
             .FirstOrDefaultAsync();
         if (reader == null) return NotFound("Reader not found");
 
         var book = await _context.Books.FindAsync(dto.BookId);
         if (book == null) return NotFound("Book not found");
         if (book.Quantity < 1) return NotFound("The books are over!");
-        
+
         reader.Books.Add(book);
         book.Quantity--;
-        
+
         await _context.SaveChangesAsync();
         return Ok(reader);
     }
-    
+
+    [HttpGet]
+    [Route("getByName/{word}")]
+    public async Task<ActionResult<List<Reader>>> GetByName(string word)
+    {
+        var reader = await _context.Readers
+            .Where(r => r.Fullname.ToLower().Contains(word.ToLower()))
+            .ToListAsync();
+        return Ok(reader);
+    }
 }
