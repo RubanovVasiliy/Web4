@@ -28,6 +28,10 @@ public class BooksController : ControllerBase
     public async Task<ActionResult<Book>> GetById(int id)
     {
         var book = await _context.Books.FindAsync(id);
+        if (book == null)
+        {
+            return NotFound();
+        }
         return Ok(book);
     }
 
@@ -52,7 +56,6 @@ public class BooksController : ControllerBase
             return NotFound();
         }
 
-        book.Id = updatedBook.Id;
         book.Article = updatedBook.Article;
         book.Author = updatedBook.Author;
         book.Title = updatedBook.Title;
