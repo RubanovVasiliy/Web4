@@ -10,7 +10,7 @@ namespace lab4.Controllers;
 public class BooksController : ControllerBase
 {
     private readonly MyDbContext _context;
-    
+
     public BooksController(MyDbContext context)
     {
         _context = context;
@@ -33,6 +33,7 @@ public class BooksController : ControllerBase
         {
             return NotFound();
         }
+
         return Ok(book);
     }
 
@@ -90,18 +91,18 @@ public class BooksController : ControllerBase
 
         return Ok(book);
     }
-    
+
     [HttpGet]
     [Route("getBooksInStock")]
     public async Task<ActionResult<List<Book>>> GetBooksInStock()
     {
-        var books = await _context.Books.Where(b=>b.Quantity > 0).ToListAsync();
+        var books = await _context.Books.Where(b => b.Quantity > 0).ToListAsync();
         return Ok(books);
     }
 
     [HttpGet]
     [Route("getByTitle/{word}")]
-    public async Task<ActionResult<Book>> GetByTitle(string word)
+    public async Task<ActionResult<List<Book>>> GetByTitle(string word)
     {
         var book = await _context.Books
             .Where(b => b.Title.ToLower().Contains(word.ToLower()))
