@@ -98,6 +98,14 @@ public class BooksController : ControllerBase
         var books = await _context.Books.Where(b=>b.Quantity > 0).ToListAsync();
         return Ok(books);
     }
-    
-    
+
+    [HttpGet]
+    [Route("getByTitle/{word}")]
+    public async Task<ActionResult<Book>> GetByTitle(string word)
+    {
+        var book = await _context.Books
+            .Where(b => b.Title.ToLower().Contains(word.ToLower()))
+            .ToListAsync();
+        return Ok(book);
+    }
 }
