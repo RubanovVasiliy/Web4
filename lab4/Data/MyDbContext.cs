@@ -9,8 +9,8 @@ public sealed class MyDbContext : DbContext
         Database.EnsureCreated();
     }
 
-    private DbSet<Book> Books => Set<Book>();
-    private DbSet<Reader> Readers => Set<Reader>();
+    public DbSet<Book> Books => Set<Book>();
+    public DbSet<Reader> Readers => Set<Reader>();
 
 
     /// <summary>

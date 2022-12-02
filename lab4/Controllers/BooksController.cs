@@ -1,5 +1,6 @@
 using lab4.Data;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace lab4.Controllers;
 
@@ -8,21 +9,7 @@ namespace lab4.Controllers;
 public class BooksController : ControllerBase
 {
     private readonly MyDbContext _context;
-
-    private static List<Book> books = new()
-    {
-        // new Book
-        // {
-        //     Id = 1,
-        //     Title = "",
-        //     Article = "",
-        //     Author = "",
-        //     YearOfPublication = 2000,
-        //     Quantity = 5
-        // }
-    };
-
-
+    
     public BooksController(MyDbContext context)
     {
         _context = context;
@@ -30,24 +17,17 @@ public class BooksController : ControllerBase
 
     [HttpGet]
     [Route("getAll")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<ActionResult<Book[]>> GetAll()
+    public async Task<ActionResult<List<Book>>> GetAll()
     {
-        return Ok(await _context.GetAllBooks());
+        var books = await _context.Books.ToListAsync();
+        return books;
     }
 
     [HttpGet]
     [Route("getById/{id:int}")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<Book>> GetById(int id)
     {
-        var book = await _context.GetBookById(id);
-        if (book == null)
-        {
-            return NotFound();
-        }
-
+        var book = await _context.Books.FindAsync(id);
         return Ok(book);
     }
 
@@ -56,7 +36,9 @@ public class BooksController : ControllerBase
     [ProducesResponseType(StatusCodes.Status201Created)]
     public async Task<ActionResult<Book>> Add(Book book)
     {
-        return Ok(await _context.CreateBook(book));
+        await _context.Books.AddAsync(book);
+        await _context.SaveChangesAsync();
+        return Ok(book);
     }
 
     [HttpPut]
@@ -64,7 +46,7 @@ public class BooksController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult<Book>> Update(Book updatedBook)
     {
-        var book = books.Find(b => b.Id == updatedBook.Id);
+        var book = await _context.Books.FindAsync(updatedBook.Id);
         if (book == null)
         {
             return NotFound();
@@ -76,7 +58,7 @@ public class BooksController : ControllerBase
         book.Title = updatedBook.Title;
         book.Quantity = updatedBook.Quantity;
         book.YearOfPublication = updatedBook.YearOfPublication;
-
+        await _context.SaveChangesAsync();
         return Ok(updatedBook);
     }
 
@@ -85,13 +67,15 @@ public class BooksController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult<Book>> Delete(int id)
     {
-        var book = books.Find(b => b.Id == id);
+        var book = await _context.Books.FindAsync(id);
         if (book == null)
         {
             return NotFound();
         }
 
-        books.Remove(book);
+        _context.Books.Remove(book);
+        await _context.SaveChangesAsync();
+
         return Ok(book);
     }
 }
