@@ -31,7 +31,7 @@ public class ReadersController : ControllerBase
         var reader = await _context.Readers
             .Where(r => r.Id == id)
             .Include(r => r.Books)
-            .ToListAsync();
+            .FirstOrDefaultAsync();
 
         return Ok(reader);
     }
@@ -113,7 +113,32 @@ public class ReadersController : ControllerBase
     {
         var reader = await _context.Readers
             .Where(r => r.Fullname.ToLower().Contains(word.ToLower()))
+            .Include(r => r.Books)
             .ToListAsync();
         return Ok(reader);
+    }
+
+    [HttpPost]
+    [Route("bookHandOver")]
+    public async Task<ActionResult<bool>> BookHandOver(CreateReaderBookDto dto)
+    {
+        var reader = await _context.Readers
+            .Where(r => r.Id == dto.ReaderId)
+            .Include(r => r.Books)
+            .FirstOrDefaultAsync();
+
+        if (reader != null)
+        {
+            foreach (var book in reader.Books.Where(book => book.Id == dto.BookId))
+            {
+                reader.Books.Remove(book);
+                book.Quantity++;
+                await _context.SaveChangesAsync();
+                return Ok(1);
+            }
+        }
+
+        await _context.SaveChangesAsync();
+        return Ok(0);
     }
 }
