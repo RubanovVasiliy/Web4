@@ -109,4 +109,12 @@ public class BooksController : ControllerBase
             .ToListAsync();
         return Ok(book);
     }
+    
+    [HttpGet]
+    [Route("getIssuedBooks")]
+    public async Task<ActionResult<List<Book>>> GetIssuedBooks()
+    {
+        var books = await _context.Books.Where(b => b.Readers.Count > 0).ToListAsync();
+        return Ok(books);
+    }
 }
